@@ -1,0 +1,54 @@
+<html>
+<body>
+    <section id="wrapper">
+  <div id="touch-layer"></div>
+  <div id="particles"></div>
+  <div id="ring-screen">
+    <div id="ring">
+      <div id="ring-active">
+        <div id="ring-fill"></div>
+      </div>
+    </div>
+  </div>
+  <div id="screen" class="gradient-background">
+    <div id="target-container">
+      <div id="target">EDA</div>
+    </div>
+    <div id="ball"></div>
+    <div id="output"></div>
+  </div>
+
+
+  <div id="capture-screen" class="gradient-background hidden">
+    <div id="capture-status" class="hidden">
+      Has capturat EDA!
+    </div>
+    <div id="poof-container" class="hidden">
+      <div id="poof"></div>
+    </div>
+    <div id="capture-confetti"></div>
+    <div id="capture-ball"></div>
+    <div id="capture-ball-button-container" class="hidden">
+      <div id="capture-ball-button"></div>
+    </div>
+  </div>
+
+
+</section>
+<link rel="stylesheet" type="text/css" href="pokemon.css"/> 
+<script src="https://raco.fib.upc.edu/racoEstatic/js/jquery1.11.3.min.js"></script>
+<script src="pokemon.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/zingtouch/1.0.3/zingtouch.min.js"></script>
+<script src="anime.min.js"></script>
+<script>$(document).ready(function(){
+  var n=Math.floor(Math.random()*29)
+  var j=Math.floor(n/8)
+  var i=n%8  
+  var x=25-(125*i)
+  var y=22-(139*j);
+  $("#target").css("backgroundPosition",x+" "+y)
+  $("#target").html("IDI")
+  init()
+})</script>
+</body>
+</html>
