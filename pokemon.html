@@ -3,15 +3,17 @@
     <section id="wrapper">
   <div id="touch-layer"></div>
   <div id="particles"></div>
-  <div id="ring-screen">
+  <div id="screen" class="gradient-background">
+  
+    <div id="target-container">
+    <div id="ring-screen">
     <div id="ring">
       <div id="ring-active">
         <div id="ring-fill"></div>
       </div>
     </div>
   </div>
-  <div id="screen" class="gradient-background">
-    <div id="target-container">
+
       <div id="target">EDA</div>
     </div>
     <div id="ball"></div>
@@ -48,6 +50,14 @@
   var y=22-(139*j);
   $("#target").css("backgroundPosition",x+" "+y)
   $("#target").html("IDI")
+  
+anime({
+  targets: '#target-container',
+  translateX: function() { return anime.random(10, 20) + 'rem'; },
+  duration: function() { return anime.random(1000,2000); },
+  direction: 'alternate',
+  loop: true
+})
   init()
 })</script>
 </body>
