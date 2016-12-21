@@ -1,0 +1,25 @@
+{
+  "name": "pokemon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "pokemon.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaumemoral/pokemon.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jaumemoral/pokemon/issues"
+  },
+  "homepage": "https://github.com/jaumemoral/pokemon#readme",
+  "devDependencies": {
+    "browserify": "^13.1.1"
+  },
+  "dependencies": {
+    "pixi.js": "^4.3.0"
+  }
+}
