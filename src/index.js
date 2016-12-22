@@ -2,15 +2,9 @@ const PIXI = require('pixi.js');
 
 var Container = PIXI.Container;
 var autoDetectRenderer = PIXI.autoDetectRenderer;
-var loader = PIXI.loader;
-var resources = PIXI.loader.resources;
-var Sprite = PIXI.Sprite;
-var Text = PIXI.Text;
 
-var menuScene, gameScene, gameOverScene;
-var pokemon, pokeball;
-var creditsMessage, endMessage;
-var state, id;
+var pokeball;
+var state;
 
 var stage = new Container();
 var maxWidth = 512;
@@ -21,92 +15,78 @@ document.body.appendChild(renderer.view);
 
 state = play;
 
+setup();
+requestAnimationFrame(gameLoop);
+
 // Game States
 function menu (ts) {
 
 }
-
 function play (ts) {
     pokeball.update(ts);
     pokeball.inertia(ts);
+    if (pokeball.y > maxHeight) pokeball.reset();
 }
-
 function end (ts) {
 
 }
 
-
+// Game Setup
 function setup () {
     var texture = PIXI.Texture.fromImage('pokeball.png');
-    pokeball = createPokeball(maxWidth/2 , maxHeight-30, texture);
+    pokeball = createPokeball(texture);
 }
+function createPokeball(texture) {
+  pokeball = new PIXI.Sprite(texture);
 
-function gameLoop (ts) {
-    requestAnimationFrame(gameLoop);
-    state(ts);
-    renderer.render(stage);
-}
+  // Initialize variables
+  var x = maxWidth / 2;
+  var y = maxHeight - 30;
 
-setup();
-requestAnimationFrame(gameLoop);
+  pokeball.width = 30;
+  pokeball.height = 30;
+  pokeball.interactive = true;
+  pokeball.buttonMode = true;
+  pokeball.anchor.set(0.5);
 
+  pokeball.position.set(x, y);
+  pokeball.origX = x;
+  pokeball.origY = y;
+  pokeball.speedX = 0.0;
+  pokeball.speedY = 0.0;
+  pokeball.difX = 0.0;
+  pokeball.difY = 0.0;
+  pokeball.thrown = false;
 
-function createPokeball(x, y, texture)
-{
-  // create our little bunny friend..
-  var bunny = new PIXI.Sprite(texture);
-  bunny.width = 30;
-  bunny.height = 30;
-  // enable the bunny to be interactive... this will allow it to respond to mouse and touch events
-  bunny.interactive = true;
-    // Intitalize variables
-  bunny.speedX = 0.0;
-  bunny.speedY = 0.0;
-  bunny.difX = 0.0;
-  bunny.difY = 0.0;
-  bunny.thrown =false;
-
-  // this button mode will mean the hand cursor appears when you roll over the bunny with your mouse
-  bunny.buttonMode = true;
-  bunny.update= function(dt) {
-    if (!bunny.dragging) return;
-    if (bunny.startTime==null) bunny.startTime = dt;
-    bunny.delta = dt - bunny.startTime;
-    bunny.speedX = bunny.difX / (bunny.delta);
-    bunny.speedY = bunny.difY / (bunny.delta);
-
-
+  pokeball.update = function(dt) {
+    if (!pokeball.dragging) return;
+    if (pokeball.startTime==null) pokeball.startTime = dt;
+    pokeball.delta = dt - pokeball.startTime;
+    pokeball.speedX = pokeball.difX / (pokeball.delta);
+    pokeball.speedY = pokeball.difY / (pokeball.delta);
   };
-
-  bunny.inertia = function(dt) {
-    if(bunny.thrown) {
-      if (bunny.speedY==0) return bunny.reset();
-      bunny.speedY =(maxSpeed > bunny.speedY) ? maxSpeed : bunny.speedY;
-      console.log("OLD - "+bunny.speedX + "-" + bunny.speedY);
+  pokeball.inertia = function(dt) {
+    if(pokeball.thrown) {
+      if (pokeball.speedY==0) return pokeball.reset();
+      pokeball.speedY =(maxSpeed > pokeball.speedY) ? maxSpeed : pokeball.speedY;
+      console.log("OLD - "+pokeball.speedX + "-" + pokeball.speedY);
       //console.log("throws");
-      bunny.position.x = bunny.position.x + bunny.speedX*bunny.delta;
-      bunny.position.y = bunny.position.y + bunny.speedY*bunny.delta;
-      bunny.scale.set( bunny.scale.x- 0.0000001*bunny.delta);
-      bunny.speedY = bunny.speedY + 0.000581;
-
-
-      //console.log(bunny.speedX + "-" + bunny.speedY);
-    }
-    bunny.reset = function () {
-      bunny.thrown = false;
-      bunny.position.x = bunny.origX;
-      bunny.position.y = bunny.origY;
+      pokeball.position.x = pokeball.position.x + pokeball.speedX*pokeball.delta;
+      pokeball.position.y = pokeball.position.y + pokeball.speedY*pokeball.delta;
+      // Im sorry bro, this doesnt work properly and fks the pokeball later
+      //pokeball.scale.set( pokeball.scale.x- 0.0000001*pokeball.delta);
+      pokeball.speedY = pokeball.speedY + 0.000581;
     }
   };
+  pokeball.reset = function () {
+    pokeball.thrown = false;
+    pokeball.position.x = pokeball.origX;
+    pokeball.position.y = pokeball.origY;
+    pokeball.startTime = null;
+  };
 
-  // center the bunny's anchor point
-  bunny.anchor.set(0.5);
-
-  // make it a bit bigger, so it's easier to grab
-  bunny.scale.set(3);
-
-  // setup events
-  bunny
+  // Events Setup
+  pokeball
     // events for drag start
       .on('mousedown', onDragStart)
       .on('touchstart', onDragStart)
@@ -118,34 +98,21 @@ function createPokeball(x, y, texture)
     // events for drag move
       .on('mousemove', onDragMove)
       .on('touchmove', onDragMove);
-  // move the sprite to its designated position
-  bunny.origX = x;
-  bunny.origY = y;
 
-  bunny.position.x = bunny.origX;
-  bunny.position.y = bunny.origY;
   // add it to the stage
-  stage.addChild(bunny);
-  return bunny;
+  stage.addChild(pokeball);
+  return pokeball;
 }
 
-requestAnimationFrame( animate );
-
-function animate(ts) {
-
-  requestAnimationFrame(animate);
-
-  // render the stage
-  renderer.render(stage);
-
-  pokeball.update(ts);
-  pokeball.inertia(ts);
-
-
+// Game Loop
+function gameLoop (ts) {
+    requestAnimationFrame(gameLoop);
+    state(ts);
+    renderer.render(stage);
 }
 
-function onDragStart(event)
-{
+// Callback Functions
+function onDragStart(event) {
   // store a reference to the data
   // the reason for this is because of multitouch
   // we want to track the movement of this particular touch
@@ -153,9 +120,7 @@ function onDragStart(event)
   this.alpha = 0.5;
   this.dragging = true;
 }
-
-function onDragEnd()
-{
+function onDragEnd() {
   this.alpha = 1;
 
   this.dragging = false;
@@ -169,12 +134,8 @@ function onDragEnd()
   console.log(this.scale.x);
   console.log(this.scale.y);
 }
-
-function onDragMove()
-{
-  if (this.dragging)
-  {
-
+function onDragMove() {
+  if (this.dragging) {
     var newPosition = this.data.getLocalPosition(this.parent);
     this.difX = newPosition.x - this.position.x;
     this.difY = newPosition.y - this.position.y;
@@ -182,6 +143,3 @@ function onDragMove()
     this.position.y = newPosition.y;
   }
 }
-
-
-
