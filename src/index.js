@@ -10,7 +10,7 @@ var stage = new Container();
 var maxWidth = 512;
 var maxHeight = 512;
 var maxSpeed = -0.07;
-var renderer = autoDetectRenderer(maxWidth, maxHeight);
+var renderer = autoDetectRenderer(maxWidth, maxHeight, {transparent: true});
 document.body.appendChild(renderer.view);
 
 state = play;
