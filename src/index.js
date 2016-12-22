@@ -3,7 +3,7 @@ const PIXI = require('pixi.js');
 var Container = PIXI.Container;
 var autoDetectRenderer = PIXI.autoDetectRenderer;
 
-var pokeball;
+var pokeball, pokemons;
 var state;
 
 var stage = new Container();
@@ -25,6 +25,7 @@ function menu (ts) {
 function play (ts) {
     pokeball.update(ts);
     pokeball.inertia(ts);
+    pokemons.update();
     if (pokeball.y > maxHeight) pokeball.reset();
 }
 function end (ts) {
@@ -33,8 +34,12 @@ function end (ts) {
 
 // Game Setup
 function setup () {
-    var texture = PIXI.Texture.fromImage('pokeball.png');
-    pokeball = createPokeball(texture);
+  var pokemonTexture = PIXI.Texture.fromImage('pokemons.png');
+  pokemonTexture.frame = new PIXI.Rectangle(0, 0, 100, 100);
+  pokemons = createPokemon(pokemonTexture);
+
+  var pokeballTexture = PIXI.Texture.fromImage('pokeball.png');
+  pokeball = createPokeball(pokeballTexture);
 }
 function createPokeball(texture) {
   pokeball = new PIXI.Sprite(texture);
@@ -69,11 +74,11 @@ function createPokeball(texture) {
     if(pokeball.thrown) {
       if (pokeball.speedY==0) return pokeball.reset();
       pokeball.speedY =(maxSpeed > pokeball.speedY) ? maxSpeed : pokeball.speedY;
-      console.log("OLD - "+pokeball.speedX + "-" + pokeball.speedY);
+      //console.log("OLD - "+pokeball.speedX + "-" + pokeball.speedY);
       //console.log("throws");
       pokeball.position.x = pokeball.position.x + pokeball.speedX*pokeball.delta;
       pokeball.position.y = pokeball.position.y + pokeball.speedY*pokeball.delta;
-      // Im sorry bro, this doesnt work properly and fks the pokeball later
+      // TODO: Im sorry bro, this doesnt work properly and fks the pokeball later
       //pokeball.scale.set( pokeball.scale.x- 0.0000001*pokeball.delta);
       pokeball.speedY = pokeball.speedY + 0.000581;
     }
@@ -102,6 +107,19 @@ function createPokeball(texture) {
   // add it to the stage
   stage.addChild(pokeball);
   return pokeball;
+}
+function createPokemon (texture) {
+  var pokemon = new PIXI.Sprite(texture);
+  pokemon.position.set(maxWidth / 2 - 50, maxHeight / 2 - 50);
+  pokemon.speed = 2;
+  pokemon.update = function () {
+    // TODO: Fix that, is not moving enought. Here goes the pokemon movement
+    /*this.x += this.speed;
+    if (this.x > maxWidth / 3 || this.x > maxWidth / 3 * 2)
+      this.speed *= -1;*/
+  };
+  stage.addChild(pokemon);
+  return pokemon;
 }
 
 // Game Loop
