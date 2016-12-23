@@ -36338,8 +36338,8 @@ var scale = 1;
 
 var maxSpeed = -0.07;
 var myView = document.getElementById('myCanvas');
-myView.width  = window.innerWidth;
-myView.height = window.innerHeight;
+myView.width  = window.innerWidth-20;
+myView.height = window.innerHeight-20;
       
 
 maxWidth = myView.width;
@@ -36403,7 +36403,7 @@ function createCredits () {
   var base = 'Credits: ';
   var text =  new PIXI.Text(
       '',
-      {fontFamily: 'Futura', fontSize: '24px', fill: 'black'}
+      {fontFamily: 'Arial', fontSize: '24px', fill: 'white'}
   );
 
   text.increaseCredits = function increaseCredits (inc) {
