@@ -25,8 +25,15 @@ function menu (ts) {
 function play (ts) {
     pokeball.update(ts);
     pokeball.inertia(ts);
-    pokemons.update();
-    if (pokeball.y > maxHeight) pokeball.reset();
+    
+    if(this.startTime == null) this.startTime = ts;
+    var dt = (ts - this.startTime)/700;
+    this.startTime = ts;
+
+    pokemons.update(dt);
+
+    if (pokeball.position.y > maxHeight) pokeball.reset();
+    if (pokeball.position.x > maxWidth || pokeball.position.x < 0) pokeball.reset();
 }
 function end (ts) {
 
@@ -74,11 +81,10 @@ function createPokeball(texture) {
     if(pokeball.thrown) {
       if (pokeball.speedY==0) return pokeball.reset();
       pokeball.speedY =(maxSpeed > pokeball.speedY) ? maxSpeed : pokeball.speedY;
-      //console.log("OLD - "+pokeball.speedX + "-" + pokeball.speedY);
-      //console.log("throws");
       pokeball.position.x = pokeball.position.x + pokeball.speedX*pokeball.delta;
       pokeball.position.y = pokeball.position.y + pokeball.speedY*pokeball.delta;
-      // TODO: Im sorry bro, this doesnt work properly and fks the pokeball later
+      // TODO: Im sorry bro, this doesnt work properly and fks the pokeball later 
+      // I know. -.-
       //pokeball.scale.set( pokeball.scale.x- 0.0000001*pokeball.delta);
       pokeball.speedY = pokeball.speedY + 0.000581;
     }
@@ -110,20 +116,23 @@ function createPokeball(texture) {
 }
 function createPokemon (texture) {
   var pokemon = new PIXI.Sprite(texture);
-  pokemon.position.set(maxWidth / 2 - 50, maxHeight / 2 - 50);
-  pokemon.speed = 2;
-  pokemon.update = function () {
-    // TODO: Fix that, is not moving enought. Here goes the pokemon movement
-    /*this.x += this.speed;
-    if (this.x > maxWidth / 3 || this.x > maxWidth / 3 * 2)
-      this.speed *= -1;*/
-  };
+  pokemon.angle = 0;
+  pokemon.position.set(50, 50);
+  pokemon.update = function (dt) {
+    this.angle += 0.6*dt;
+    var middle = (maxWidth / 2 - 50);
+    var sinInc = Math.sin(this.angle) * middle; 
+    this.position.x=middle + sinInc;
+    }
   stage.addChild(pokemon);
   return pokemon;
 }
 
 // Game Loop
 function gameLoop (ts) {
+    
+
+
     requestAnimationFrame(gameLoop);
     state(ts);
     renderer.render(stage);
