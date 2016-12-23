@@ -1,0 +1,26 @@
+{
+  "name": "pokemon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "pokemon.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "browserify src/index.js -o docs/bundle.js && echo 'built!'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inlab-fib/fibemon.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/inlab-fib/fibemon/issues"
+  },
+  "homepage": "https://inlab-fib.github.com/fibemon/",
+  "devDependencies": {
+    "browserify": "^13.1.1"
+  },
+  "dependencies": {
+    "pixi.js": "^4.3.0"
+  }
+}
