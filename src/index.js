@@ -5,9 +5,12 @@ var autoDetectRenderer = PIXI.autoDetectRenderer;
 
 var pokeball, pokemons;
 var credits, creditsMessage;
+var assig, assigMessage;
 var state;
 
 var stage = new Container();
+var pokemonContainer = new Container();
+
 var maxWidth = 512;
 var maxHeight = 512;
 var maxSpeed = -0.07;
@@ -19,6 +22,10 @@ state = play;
 
 setup();
 requestAnimationFrame(gameLoop);
+
+// TODO: Capture pokemon on collision when y speed is positive (going down)
+// TODO: Print assig name over/under the pokemon
+// TODO: Increment number of credits
 
 // Game States
 function menu (ts) {
@@ -45,6 +52,9 @@ function end (ts) {
 
 // Game Setup
 function setup () {
+  assig = "IDI";
+  stage.addChild(pokemonContainer);
+
   var pokemonTexture = PIXI.Texture.fromImage('pokemons.png');
   pokemonTexture.frame = new PIXI.Rectangle(0, 0, 100, 100);
   pokemons = createPokemon(pokemonTexture);
@@ -54,6 +64,7 @@ function setup () {
 
   credits = 0;
   setCreditsMessage();
+  stage.addChild(creditsMessage);
 }
 function createPokeball(texture) {
   pokeball = new PIXI.Sprite(texture);
@@ -125,19 +136,27 @@ function createPokemon (texture) {
   var pokemon = new PIXI.Sprite(texture);
   pokemon.angle = 0;
   pokemon.position.set(50, 50);
+  pokemon.assigMessage = new PIXI.Text(
+      assig,
+      {fontFamily: 'Futura', fontSize: '32px', fill: 'black'}
+  );
+  pokemon.assigMessage.textWidth = textWidth('Credits: 0', 'Futura', '32px'); // To get the size on pixels of the text
   pokemon.update = function (dt) {
     this.angle += 0.6*dt;
     var middle = (maxWidth / 2 - 50);
     var sinInc = Math.sin(this.angle) * middle; 
     this.position.x=middle + sinInc;
-    }
-  stage.addChild(pokemon);
+    this.assigMessage.position.set(pokemon.position.x + 15,
+                                   pokemon.position.y - 30);
+  };
+  pokemonContainer.addChild(pokemon);
+  pokemonContainer.addChild(pokemon.assigMessage);
   return pokemon;
 }
 function setCreditsMessage () {
   creditsMessage = new PIXI.Text(
       'Credits: ' + credits,
-      {fontFamily: 'Futura', fontSize: '64px', fill: 'white'}
+      {fontFamily: 'Futura', fontSize: '24px', fill: 'black'}
   );
 }
 
@@ -219,4 +238,16 @@ function onDragMove() {
     this.position.x = newPosition.x;
     this.position.y = newPosition.y;
   }
+}
+
+// Others
+function textWidth (txt, fontname, fontsize) {
+  this.e = document.createElement('span')
+  this.e.style.fontSize = fontsize
+  this.e.style.fontFamily = fontname
+  this.e.innerHTML = txt
+  document.body.appendChild(this.e)
+  let w = this.e.offsetWidth
+  document.body.removeChild(this.e)
+  return w
 }
