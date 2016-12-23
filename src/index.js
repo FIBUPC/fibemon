@@ -4,17 +4,23 @@ var Container = PIXI.Container;
 var autoDetectRenderer = PIXI.autoDetectRenderer;
 
 var pokeball, pokemons;
-var credits, creditsMessage;
+var creditsMessage;
 var assig, assigMessage;
 var state;
 
 var stage = new Container();
 var pokemonContainer = new Container();
 
-var maxWidth = 512;
-var maxHeight = 512;
+var scale = 1;
+
 var maxSpeed = -0.07;
 var myView = document.getElementById('myCanvas');
+myView.width  = window.innerWidth-5;
+myView.height = window.innerHeight-5;
+      
+
+maxWidth = myView.width;
+maxHeight = myView.height;
 var renderer = autoDetectRenderer(maxWidth, maxHeight, {view: myView, transparent: true});
 document.body.appendChild(renderer.view);
 
@@ -28,12 +34,11 @@ requestAnimationFrame(gameLoop);
 // TODO: Increment number of credits
 
 // Game States
-function menu (ts) {
+function start (ts) {
 
 }
 function play (ts) {
     pokeball.update(ts);
-    pokeball.inertia(ts);
     
     if(this.startTime == null) this.startTime = ts;
     var dt = (ts - this.startTime)/700;
@@ -44,10 +49,15 @@ function play (ts) {
     if (pokeball.position.y > maxHeight) pokeball.reset();
     if (pokeball.position.x > maxWidth || pokeball.position.x < 0) pokeball.reset();
 
-    setCreditsMessage(); // Updates automatically the credits message. credits var need to be updated
+     // Updates automatically the credits message. credits var need to be updated
+    
 }
-function end (ts) {
+function capture (ts) {
+    if(this.startTime == null) this.startTime = ts;
+    var dt = (ts - this.startTime)/700;
+    this.startTime = ts;
 
+    pokemons.capture(dt)
 }
 
 // Game Setup
@@ -62,10 +72,32 @@ function setup () {
   var pokeballTexture = PIXI.Texture.fromImage('pokeball.png');
   pokeball = createPokeball(pokeballTexture);
 
-  credits = 0;
-  setCreditsMessage();
+  creditsMessage = createCredits();
   stage.addChild(creditsMessage);
 }
+
+function createCredits () {
+  var base = 'Credits: ';
+  var text =  new PIXI.Text(
+      '',
+      {fontFamily: 'Futura', fontSize: '24px', fill: 'black'}
+  );
+
+  text.increaseCredits = function increaseCredits (inc) {
+    this.credits+=inc;
+    this.text = base + this.  credits;
+  }
+
+  text.reset = function () {
+    this.credits = 0;
+    this.increaseCredits(0);
+  }
+
+  text.reset();
+  return text;
+
+}
+
 function createPokeball(texture) {
   pokeball = new PIXI.Sprite(texture);
 
@@ -79,39 +111,45 @@ function createPokeball(texture) {
   pokeball.buttonMode = true;
   pokeball.anchor.set(0.5);
 
-  pokeball.position.set(x, y);
+  // pokeball.position.set(x, y);
   pokeball.origX = x;
   pokeball.origY = y;
-  pokeball.speedX = 0.0;
-  pokeball.speedY = 0.0;
-  pokeball.difX = 0.0;
-  pokeball.difY = 0.0;
-  pokeball.thrown = false;
+
+
 
   pokeball.update = function(dt) {
-    if (!pokeball.dragging) return;
-    if (pokeball.startTime==null) pokeball.startTime = dt;
-    pokeball.delta = dt - pokeball.startTime;
-    pokeball.speedX = pokeball.difX / (pokeball.delta);
-    pokeball.speedY = pokeball.difY / (pokeball.delta);
-  };
-  pokeball.inertia = function(dt) {
-    if(pokeball.thrown) {
-      if (pokeball.speedY==0) return pokeball.reset();
-      pokeball.speedY =(maxSpeed > pokeball.speedY) ? maxSpeed : pokeball.speedY;
-      pokeball.position.x = pokeball.position.x + pokeball.speedX*pokeball.delta;
-      pokeball.position.y = pokeball.position.y + pokeball.speedY*pokeball.delta;
-      // TODO: Im sorry bro, this doesnt work properly and fks the pokeball later 
-      // I know. -.-
-      //pokeball.scale.set( pokeball.scale.x- 0.0000001*pokeball.delta);
-      pokeball.speedY = pokeball.speedY + 0.000581;
+    if (this.startTime==null) this.startTime = dt;
+    var delta = dt - this.startTime;
+    // Set start speed
+    if (this.thrown) {
+      this.interactive = false;
+      this.buttonMode = false;
+      this.thrown = false;
+      this.inertia = true;
+    }
+    
+    if(this.inertia) {
+      if (this.speed.y===0) return this.reset();
+      
+      this.position.x += this.speed.x;
+      this.position.y += this.speed.y;
+
+      //Gravity strikes
+      this.speed.y += 0.0981;
     }
   };
   pokeball.reset = function () {
-    pokeball.thrown = false;
-    pokeball.position.x = pokeball.origX;
-    pokeball.position.y = pokeball.origY;
-    pokeball.startTime = null;
+    this.thrown = false;
+    this.position.x = this.origX;
+    this.position.y = this.origY;
+    this.startTime = null;
+    this.inertia=false;
+    this.interactive = true;
+    this.buttonMode = true;
+    this.speed={
+      x : 0,
+      y : 0
+    }
   };
 
   // Events Setup
@@ -127,20 +165,60 @@ function createPokeball(texture) {
     // events for drag move
       .on('mousemove', onDragMove)
       .on('touchmove', onDragMove);
+  // Callback Functions
+  function onDragStart(event) {
+    // store a reference to the data
+    // the reason for this is because of multitouch
+    // we want to track the movement of this particular touch
+    this.data = event.data;
+    this.alpha = 0.5;
+    this.dragging = true;
+  }
+  function onDragEnd() {
+    this.alpha = 1;
 
+    this.dragging = false;
+    this.thrown =true;
+
+    // set the interaction data to null
+    this.data = null;
+    
+    this.speed.x = (this.position.x - this.prev.x)/5;
+    this.speed.y = (this.position.y - this.prev.y)/5;
+    
+    
+  }
+  function onDragMove() {
+    if (!this.dragging) return;
+
+    // Store previous position
+    this.prev = {
+      x: this.position.x,
+      y: this.position.y
+    }
+
+    //Update position
+    var newPosition = this.data.getLocalPosition(this.parent);
+    this.position.x = newPosition.x;
+    this.position.y = newPosition.y;
+
+
+  }
+
+  pokeball.reset();
   // add it to the stage
   stage.addChild(pokeball);
   return pokeball;
 }
 function createPokemon (texture) {
   var pokemon = new PIXI.Sprite(texture);
-  pokemon.angle = 0;
-  pokemon.position.set(50, 50);
+  
   pokemon.assigMessage = new PIXI.Text(
       assig,
       {fontFamily: 'Futura', fontSize: '32px', fill: 'black'}
   );
   pokemon.assigMessage.textWidth = textWidth('Credits: 0', 'Futura', '32px'); // To get the size on pixels of the text
+
   pokemon.update = function (dt) {
     this.angle += 0.6*dt;
     var middle = (maxWidth / 2 - 50);
@@ -149,21 +227,44 @@ function createPokemon (texture) {
     this.assigMessage.position.set(pokemon.position.x + 15,
                                    pokemon.position.y - 30);
   };
+
+  pokemon.capture = function(dt) {
+    this.angle += 0.6*dt;
+    var sinInc = Math.sin(this.angle) ; 
+    var newScale = this.scale.x - sinInc;
+    if (newScale <= 0) {
+      creditsMessage.increaseCredits(6);
+      pokemon.reset();
+      pokeball.reset();
+      state = play;
+    } else {
+      this.scale.set(newScale);  
+    }
+    
+  }
+
+  pokemon.reset =function () {
+    this.angle = 0;
+    this.position.set(80, 50);
+    this.scale.set(1);
+    assig = "IDI";
+  }
+  pokemon.reset();
   pokemonContainer.addChild(pokemon);
   pokemonContainer.addChild(pokemon.assigMessage);
   return pokemon;
 }
-function setCreditsMessage () {
-  creditsMessage = new PIXI.Text(
-      'Credits: ' + credits,
-      {fontFamily: 'Futura', fontSize: '24px', fill: 'black'}
-  );
-}
+
 
 // Game Loop
 function gameLoop (ts) {
     requestAnimationFrame(gameLoop);
     state(ts);
+    if(hitTestRectangle(pokemons,pokeball)&&!pokeball.dragging){
+      pokemons.angle = 0;
+      state = capture;
+    }
+
     renderer.render(stage);
 }
 
@@ -208,37 +309,6 @@ function hitTestRectangle (sprite1, sprite2) {
 }
 
 // Callback Functions
-function onDragStart(event) {
-  // store a reference to the data
-  // the reason for this is because of multitouch
-  // we want to track the movement of this particular touch
-  this.data = event.data;
-  this.alpha = 0.5;
-  this.dragging = true;
-}
-function onDragEnd() {
-  this.alpha = 1;
-
-  this.dragging = false;
-  this.thrown =true;
-
-  // set the interaction data to null
-  this.data = null;
-
-  console.log(this.speedX);
-  console.log(this.speedY);
-  console.log(this.scale.x);
-  console.log(this.scale.y);
-}
-function onDragMove() {
-  if (this.dragging) {
-    var newPosition = this.data.getLocalPosition(this.parent);
-    this.difX = newPosition.x - this.position.x;
-    this.difY = newPosition.y - this.position.y;
-    this.position.x = newPosition.x;
-    this.position.y = newPosition.y;
-  }
-}
 
 // Others
 function textWidth (txt, fontname, fontsize) {
