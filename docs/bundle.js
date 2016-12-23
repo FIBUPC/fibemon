@@ -36403,7 +36403,7 @@ function createCredits () {
   var base = 'Credits: ';
   var text =  new PIXI.Text(
       '',
-      {fontFamily: 'Arial', fontSize: '24px', fill: 'white'}
+      {fontFamily: 'Arial ', fontSize: '24px', fill: 'white'}
   );
 
   text.increaseCredits = function increaseCredits (inc) {

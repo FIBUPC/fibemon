@@ -5,18 +5,18 @@
   "main": "pokemon.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify src/index.js -o dist/bundle.js && echo 'built!'"
+    "build": "browserify src/index.js -o docs/bundle.js && echo 'built!'"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jaumemoral/pokemon.git"
+    "url": "git+https://github.com/inlab-fib/fibemon.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/jaumemoral/pokemon/issues"
+    "url": "https://github.com/inlab-fib/fibemon/issues"
   },
-  "homepage": "https://github.com/jaumemoral/pokemon#readme",
+  "homepage": "https://inlab-fib.github.com/fibemon/",
   "devDependencies": {
     "browserify": "^13.1.1"
   },
