@@ -5,7 +5,7 @@ var autoDetectRenderer = PIXI.autoDetectRenderer;
 
 var pokeball, pokemons;
 var creditsMessage;
-var assig, assigMessage;
+var assigsText = '[{"id": "IC", "credits": 7.5}, {"id": "FM", "credits": 7.5}, {"id": "PRO1", "credits": 7.5}, {"id": "F", "credits": 7.5}, {"id": "PRO2", "credits": 7.5}, {"id": "EC", "credits": 7.5}, {"id": "M1", "credits": 7.5}, {"id": "M2", "credits": 7.5}, {"id": "PE", "credits": 6.0}, {"id": "SO", "credits": 6.0}, {"id": "CI", "credits": 6.0}, {"id": "BD", "credits": 6.0}, {"id": "EDA", "credits": 6.0}, {"id": "PROP", "credits": 6.0}, {"id": "EEE", "credits": 6.0}, {"id": "XC", "credits": 6.0}, {"id": "IES", "credits": 6.0}, {"id": "AC", "credits": 6.0}, {"id": "GPS", "credits": 6.0}, {"id": "LI", "credits": 6.0}, {"id": "SO2", "credits": 6.0}, {"id": "AC2", "credits": 6.0}, {"id": "TC", "credits": 6.0}, {"id": "SIO", "credits": 6.0}, {"id": "DSBM", "credits": 6.0}, {"id": "DSI", "credits": 6.0}, {"id": "CSI", "credits": 6.0}, {"id": "IO", "credits": 6.0}, {"id": "TXC", "credits": 6.0}, {"id": "XC2", "credits": 6.0}, {"id": "CAP", "credits": 6.0}, {"id": "PAR", "credits": 6.0}, {"id": "IA", "credits": 6.0}, {"id": "A", "credits": 6.0}, {"id": "AS", "credits": 6.0}, {"id": "PDS", "credits": 6.0}, {"id": "ER", "credits": 6.0}, {"id": "DBD", "credits": 6.0}, {"id": "IDI", "credits": 6.0}, {"id": "ADEI", "credits": 6.0}, {"id": "ASO", "credits": 6.0}, {"id": "TCI", "credits": 6.0}, {"id": "CAIM", "credits": 6.0}, {"id": "PCA", "credits": 6.0}, {"id": "SOA", "credits": 6.0}, {"id": "PI", "credits": 6.0}, {"id": "AD", "credits": 6.0}, {"id": "ABD", "credits": 6.0}, {"id": "STR", "credits": 6.0}, {"id": "SI", "credits": 6.0}, {"id": "SID", "credits": 6.0}, {"id": "PEC", "credits": 6.0}, {"id": "CPD", "credits": 6.0}, {"id": "PES", "credits": 6.0}, {"id": "MI", "credits": 6.0}, {"id": "SOAD", "credits": 6.0}, {"id": "ECSDI", "credits": 6.0}, {"id": "VLSI", "credits": 6.0}, {"id": "CL", "credits": 6.0}, {"id": "EDO", "credits": 6.0}, {"id": "IM", "credits": 6.0}, {"id": "APA", "credits": 6.0}, {"id": "LP", "credits": 6.0}, {"id": "MP", "credits": 6.0}, {"id": "PTI", "credits": 6.0}, {"id": "SIM", "credits": 6.0}, {"id": "CASO", "credits": 6.0}, {"id": "AA", "credits": 6.0}, {"id": "PAP", "credits": 6.0}, {"id": "SDX", "credits": 6.0}, {"id": "PSI", "credits": 6.0}, {"id": "G", "credits": 6.0}, {"id": "NE", "credits": 6.0}, {"id": "CN", "credits": 6.0}, {"id": "CBDE", "credits": 6.0}, {"id": "ASW", "credits": 6.0}, {"id": "MD", "credits": 6.0}]';
 var state;
 
 var stage = new Container();
@@ -58,7 +58,8 @@ function capture (ts) {
 
 // Game Setup
 function setup () {
-  assig = "IDI";
+  // Loading assigs from json file
+  assigs = JSON.parse(assigsText);
   stage.addChild(pokemonContainer);
 
   var pokemonTexture = PIXI.Texture.fromImage('pokemons.png');
@@ -207,18 +208,21 @@ function createPokeball(texture) {
 }
 function createPokemon (texture) {
   var pokemon = new PIXI.Sprite(texture);
-  
+  var rand = Math.round(Math.random() * assigs.length);
+  var assig = assigs[rand];
+  pokemon.assig = assig.id;
+  pokemon.credits = assig.credits;
   pokemon.assigMessage = new PIXI.Text(
-      assig,
+      pokemon.assig,
       {fontFamily: 'Futura', fontSize: '32px', fill: 'black'}
   );
-  pokemon.assigMessage.textWidth = textWidth(assig, 'Futura', '32px'); // To get the size on pixels of the text
+  pokemon.assigMessage.textWidth = textWidth(pokemon.assig, 'Futura', '32px'); // To get the size on pixels of the text
 
   pokemon.update = function (dt) {
     this.angle += 0.6 * dt;
     var middle = (maxWidth / 2 - 50);
     var sinInc = Math.sin(this.angle) * middle; 
-    this.position.x=middle + sinInc;
+    this.position.x = middle + sinInc;
     var offsetX = (100 - pokemon.assigMessage.textWidth) / 2;
     this.assigMessage.position.set(pokemon.position.x + offsetX,
                                    pokemon.position.y - 30);
@@ -228,7 +232,7 @@ function createPokemon (texture) {
     var sinInc = Math.sin(this.angle) ; 
     var newScale = this.scale.x - sinInc;
     if (newScale <= 0) {
-      creditsMessage.increaseCredits(6);
+      creditsMessage.increaseCredits(this.credits);
       pokemon.reset();
       pokeball.reset();
       state = play;
@@ -238,10 +242,15 @@ function createPokemon (texture) {
     
   };
   pokemon.reset = function () {
+    var rand = Math.round(Math.random() * assigs.length);
+    var assig = assigs[rand];
+    this.assig = assig.id;
+    this.credits = assig.credits;
+    this.assigMessage.text = this.assig;
+
     this.angle = 0;
     this.position.set(80, 50);
     this.scale.set(1);
-    assig = "IDI";
   };
 
   pokemon.reset();
@@ -252,17 +261,16 @@ function createPokemon (texture) {
 
 // Game Loop
 function gameLoop (ts) {
-    requestAnimationFrame(gameLoop);
-    state(ts);
-    renderer.render(stage);
+  requestAnimationFrame(gameLoop);
+  state(ts);
+  renderer.render(stage);
 }
 
 // Collision Method
 function hitTestRectangle (sprite1, sprite2) {
   // Define the letiables we'll need to calculate
-  var hit, combinedHalfWidths, combinedHalfHeights, vx, vy;
-  // hit will determine whether there's a collision
-  hit = false;
+  var combinedHalfWidths, combinedHalfHeights, vx, vy;
+
   // Find the center points of each sprite
   sprite1.centerX = sprite1.x + sprite1.width / 2;
   sprite1.centerY = sprite1.y + sprite1.height / 2;
@@ -280,33 +288,17 @@ function hitTestRectangle (sprite1, sprite2) {
   combinedHalfWidths = sprite1.halfWidth + sprite2.halfWidth;
   combinedHalfHeights = sprite1.halfHeight + sprite2.halfHeight;
   // Check for a collision on the x axis
-  if (Math.abs(vx) < combinedHalfWidths) {
-    // A collision might be occuring. Check for a collision on the y axis
-    if (Math.abs(vy) < combinedHalfHeights) {
-      // There's definitely a collision happening
-      hit = true
-    } else {
-      // There's no collision on the y axis
-      hit = false
-    }
-  } else {
-    // There's no collision on the x axis
-    hit = false
-  }
-  // `hit` will be either `true` or `false`
-  return hit
+  return ((Math.abs(vx) < combinedHalfWidths) && (Math.abs(vy) < combinedHalfHeights))
 }
-
-// Callback Functions
 
 // Others
 function textWidth (txt, fontname, fontsize) {
-  this.e = document.createElement('span')
-  this.e.style.fontSize = fontsize
-  this.e.style.fontFamily = fontname
-  this.e.innerHTML = txt
-  document.body.appendChild(this.e)
-  let w = this.e.offsetWidth
-  document.body.removeChild(this.e)
+  this.e = document.createElement('span');
+  this.e.style.fontSize = fontsize;
+  this.e.style.fontFamily = fontname;
+  this.e.innerHTML = txt;
+  document.body.appendChild(this.e);
+  var w = this.e.offsetWidth;
+  document.body.removeChild(this.e);
   return w
 }
