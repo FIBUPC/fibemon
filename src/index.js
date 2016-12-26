@@ -30,21 +30,24 @@ document.body.appendChild(renderer.view);
 state = play;
 
 PIXI.loader
-    .add('pokemonsBaseTexture', 'pokemons.png')
+    .add('pokemonsBaseTexture', 'pokemons2.png')
     .add('pokeballTexture', 'pokeball.png')
     .load(function (loader, resources) {
       pokemonBaseTexture = resources.pokemonsBaseTexture.texture;
       pokeballTexture = resources.pokeballTexture.texture;
-      var widht = 122;
-      var height = 134;
-      for (var i = 0; i < 8; ++i) {
-        for (var j = 0; j < 3; ++j) {
-          pokemonsTextures.push(new Texture(pokemonBaseTexture, {
-            x: i * widht,
-            y: j * height,
-            width: widht,
-            height: height
-          }));
+      var widht = 64;
+      var height = 64;
+      for (var i = 0; i < 10; ++i) {
+        for (var j = 0; j < 16; ++j) {
+          if (i!=9 || j <= 6){
+           pokemonsTextures.push(new Texture(pokemonBaseTexture, {
+              x: j * widht,
+              y: i * height,
+              width: widht,
+              height: height
+            })); 
+          }
+          
         }
       }
       setup();
@@ -85,7 +88,6 @@ function setup () {
 
   // Set pokemon
   pokemons = createPokemon(pokemonsTextures);
-  console.log(pokemons);
 
   // Set pokeball
   pokeball = createPokeball(pokeballTexture);
@@ -170,6 +172,8 @@ function createPokeball(texture) {
 
     // Look if pokeball is out of bounds
     if (pokeball.position.y > maxHeight) pokeball.reset();
+    if (pokeball.position.y < maxHeight/4+20 && pokeball.dragging) pokeball.reset();
+    if (pokeball.position.y < -100) pokeball.reset();
     if (pokeball.position.x > maxWidth || pokeball.position.x < 0) pokeball.reset();
   };
   pokeball.reset = function () {
@@ -180,6 +184,9 @@ function createPokeball(texture) {
     this.inertia=false;
     this.interactive = true;
     this.buttonMode = true;
+    this.dragging = false;
+    this.alpha=1.0;
+    this.data = null;
     this.speed={
       x : 0,
       y : 0
@@ -230,16 +237,10 @@ function createPokeball(texture) {
   return pokeball;
 }
 function createPokemon (textures) {
-  var pokerand = Math.round(Math.random() * (textures.length - 1));
-  var pokemonText = textures[pokerand];
-  var pokemon = new PIXI.Sprite(pokemonText);
-  var rand = Math.round(Math.random() * (assigs.length - 1));
-  var assig = assigs[rand];
-  pokemon.assig = assig.id;
-  pokemon.credits = assig.credits;
+  var pokemon = new PIXI.Sprite(textures[0]);
   pokemon.assigMessage = new PIXI.Text(
-      pokemon.assig,
-      {fontFamily: 'Futura', fontSize: '32px', fill: 'black'}
+      '',
+      {fontFamily: 'Arial', fontSize: '24px', fill: 'white'}
   );
   pokemon.assigMessage.textWidth = textWidth(pokemon.assig, 'Futura', '32px'); // To get the size on pixels of the text
 
@@ -270,11 +271,12 @@ function createPokemon (textures) {
     var pokerand = Math.round(Math.random() * (textures.length - 1));
     this.texture = textures[pokerand];
     var rand = Math.round(Math.random() * (assigs.length - 1));
+    var pokerand = rand % textures.length
     var assig = assigs[rand];
     this.assig = assig.id;
     this.credits = assig.credits;
     this.assigMessage.text = this.assig;
-
+    this.texture = textures[pokerand]
     this.angle = 0;
     this.position.set(80, 50);
     this.scale.set(1);
