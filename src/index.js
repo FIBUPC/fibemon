@@ -271,12 +271,12 @@ function createPokemon (textures) {
     
   };
   pokemon.reset = function () {
-    var pokemonRand = Math.round(Math.random() * (textures.length - 1));
     var assigRand = Math.round(Math.random() * (assigs.length - 1));
+    // This is so that the same pokemons appear for the each assig (if repeated)
+    var pokeRand = rand % textures.length;
 
     // Save assig object
     var assig = assigs[assigRand];
-    //var pokerand = rand % textures.length;
 
     this.assig = assig.id;
     this.credits = assig.credits;
