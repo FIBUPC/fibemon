@@ -34,30 +34,26 @@ requestAnimationFrame(gameLoop);
 // TODO: Increment number of credits
 
 // Game States
-function start (ts) {
-
-}
 function play (ts) {
-    pokeball.update(ts);
-    
-    if(this.startTime == null) this.startTime = ts;
-    var dt = (ts - this.startTime)/700;
-    this.startTime = ts;
+  if(this.startTime == null) this.startTime = ts;
+  var dt = (ts - this.startTime)/700;
+  this.startTime = ts;
 
-    pokemons.update(dt);
+  pokeball.update();
+  pokemons.update(dt);
 
-    if (pokeball.position.y > maxHeight) pokeball.reset();
-    if (pokeball.position.x > maxWidth || pokeball.position.x < 0) pokeball.reset();
-
-     // Updates automatically the credits message. credits var need to be updated
-    
+  // Change state to capture
+  if(hitTestRectangle(pokemons,pokeball) && !pokeball.dragging){
+    state = capture;
+  }
 }
 function capture (ts) {
-    if(this.startTime == null) this.startTime = ts;
-    var dt = (ts - this.startTime)/700;
-    this.startTime = ts;
+  if(this.startTime == null) this.startTime = ts;
+  var dt = (ts - this.startTime)/700;
+  this.startTime = ts;
 
-    pokemons.capture(dt)
+  pokemons.angle = 0;
+  pokemons.capture(dt)
 }
 
 // Game Setup
@@ -84,18 +80,17 @@ function createCredits () {
   );
 
   text.increaseCredits = function increaseCredits (inc) {
-    this.credits+=inc;
-    this.text = base + this.  credits;
-  }
+    this.credits += inc;
+    this.text = base + this.credits;
+  };
 
   text.reset = function () {
     this.credits = 0;
     this.increaseCredits(0);
-  }
+  };
 
   text.reset();
   return text;
-
 }
 
 function createPokeball(texture) {
@@ -115,11 +110,22 @@ function createPokeball(texture) {
   pokeball.origX = x;
   pokeball.origY = y;
 
+  // Events Setup
+  pokeball
+      // events for drag start
+      .on('mousedown', onDragStart)
+      .on('touchstart', onDragStart)
+      // events for drag end
+      .on('mouseup', onDragEnd)
+      .on('mouseupoutside', onDragEnd)
+      .on('touchend', onDragEnd)
+      .on('touchendoutside', onDragEnd)
+      // events for drag move
+      .on('mousemove', onDragMove)
+      .on('touchmove', onDragMove);
 
-
-  pokeball.update = function(dt) {
-    if (this.startTime==null) this.startTime = dt;
-    var delta = dt - this.startTime;
+  // Basic Pokeball functions
+  pokeball.update = function() {
     // Set start speed
     if (this.thrown) {
       this.interactive = false;
@@ -127,16 +133,20 @@ function createPokeball(texture) {
       this.thrown = false;
       this.inertia = true;
     }
-    
+
     if(this.inertia) {
       if (this.speed.y===0) return this.reset();
-      
+
       this.position.x += this.speed.x;
       this.position.y += this.speed.y;
 
       //Gravity strikes
       this.speed.y += 0.0981;
     }
+
+    // Look if pokeball is out of bounds
+    if (pokeball.position.y > maxHeight) pokeball.reset();
+    if (pokeball.position.x > maxWidth || pokeball.position.x < 0) pokeball.reset();
   };
   pokeball.reset = function () {
     this.thrown = false;
@@ -152,19 +162,6 @@ function createPokeball(texture) {
     }
   };
 
-  // Events Setup
-  pokeball
-    // events for drag start
-      .on('mousedown', onDragStart)
-      .on('touchstart', onDragStart)
-    // events for drag end
-      .on('mouseup', onDragEnd)
-      .on('mouseupoutside', onDragEnd)
-      .on('touchend', onDragEnd)
-      .on('touchendoutside', onDragEnd)
-    // events for drag move
-      .on('mousemove', onDragMove)
-      .on('touchmove', onDragMove);
   // Callback Functions
   function onDragStart(event) {
     // store a reference to the data
@@ -195,18 +192,16 @@ function createPokeball(texture) {
     this.prev = {
       x: this.position.x,
       y: this.position.y
-    }
+    };
 
     //Update position
     var newPosition = this.data.getLocalPosition(this.parent);
     this.position.x = newPosition.x;
     this.position.y = newPosition.y;
-
-
   }
 
+  // Reset pokeball and add it to the stage
   pokeball.reset();
-  // add it to the stage
   stage.addChild(pokeball);
   return pokeball;
 }
@@ -217,17 +212,17 @@ function createPokemon (texture) {
       assig,
       {fontFamily: 'Futura', fontSize: '32px', fill: 'black'}
   );
-  pokemon.assigMessage.textWidth = textWidth('Credits: 0', 'Futura', '32px'); // To get the size on pixels of the text
+  pokemon.assigMessage.textWidth = textWidth(assig, 'Futura', '32px'); // To get the size on pixels of the text
 
   pokemon.update = function (dt) {
-    this.angle += 0.6*dt;
+    this.angle += 0.6 * dt;
     var middle = (maxWidth / 2 - 50);
     var sinInc = Math.sin(this.angle) * middle; 
     this.position.x=middle + sinInc;
-    this.assigMessage.position.set(pokemon.position.x + 15,
+    var offsetX = (100 - pokemon.assigMessage.textWidth) / 2;
+    this.assigMessage.position.set(pokemon.position.x + offsetX,
                                    pokemon.position.y - 30);
   };
-
   pokemon.capture = function(dt) {
     this.angle += 0.6*dt;
     var sinInc = Math.sin(this.angle) ; 
@@ -241,30 +236,24 @@ function createPokemon (texture) {
       this.scale.set(newScale);  
     }
     
-  }
-
-  pokemon.reset =function () {
+  };
+  pokemon.reset = function () {
     this.angle = 0;
     this.position.set(80, 50);
     this.scale.set(1);
     assig = "IDI";
-  }
+  };
+
   pokemon.reset();
   pokemonContainer.addChild(pokemon);
   pokemonContainer.addChild(pokemon.assigMessage);
   return pokemon;
 }
 
-
 // Game Loop
 function gameLoop (ts) {
     requestAnimationFrame(gameLoop);
     state(ts);
-    if(hitTestRectangle(pokemons,pokeball)&&!pokeball.dragging){
-      pokemons.angle = 0;
-      state = capture;
-    }
-
     renderer.render(stage);
 }
 
