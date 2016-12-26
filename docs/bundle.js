@@ -36353,21 +36353,24 @@ document.body.appendChild(renderer.view);
 state = play;
 
 PIXI.loader
-    .add('pokemonsBaseTexture', 'pokemons.png')
+    .add('pokemonsBaseTexture', 'pokemons2.png')
     .add('pokeballTexture', 'pokeball.png')
     .load(function (loader, resources) {
       pokemonBaseTexture = resources.pokemonsBaseTexture.texture;
       pokeballTexture = resources.pokeballTexture.texture;
-      var widht = 122;
-      var height = 134;
-      for (var i = 0; i < 8; ++i) {
-        for (var j = 0; j < 3; ++j) {
-          pokemonsTextures.push(new Texture(pokemonBaseTexture, {
-            x: i * widht,
-            y: j * height,
-            width: widht,
-            height: height
-          }));
+      var widht = 64;
+      var height = 64;
+      for (var i = 0; i < 10; ++i) {
+        for (var j = 0; j < 16; ++j) {
+          if (i!=9 || j <= 6){
+           pokemonsTextures.push(new Texture(pokemonBaseTexture, {
+              x: j * widht,
+              y: i * height,
+              width: widht,
+              height: height
+            })); 
+          }
+          
         }
       }
       setup();
@@ -36408,7 +36411,6 @@ function setup () {
 
   // Set pokemon
   pokemons = createPokemon(pokemonsTextures);
-  console.log(pokemons);
 
   // Set pokeball
   pokeball = createPokeball(pokeballTexture);
@@ -36561,7 +36563,7 @@ function createPokemon (textures) {
   var pokemon = new PIXI.Sprite(textures[0]);
   pokemon.assigMessage = new PIXI.Text(
       '',
-      {fontFamily: 'Arial', fontSize: '32px', fill: 'white'}
+      {fontFamily: 'Arial', fontSize: '24px', fill: 'white'}
   );
   pokemon.assigMessage.textWidth = textWidth(pokemon.assig, 'Futura', '32px'); // To get the size on pixels of the text
 
