@@ -267,6 +267,8 @@ function createPokemon (textures) {
     
   };
   pokemon.reset = function () {
+    var pokerand = Math.round(Math.random() * (textures.length - 1));
+    this.texture = textures[pokerand];
     var rand = Math.round(Math.random() * (assigs.length - 1));
     var assig = assigs[rand];
     this.assig = assig.id;
