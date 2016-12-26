@@ -2,8 +2,11 @@ const PIXI = require('pixi.js');
 
 var Container = PIXI.Container;
 var autoDetectRenderer = PIXI.autoDetectRenderer;
+var Texture = PIXI.Texture;
 
 var pokeball, pokemons;
+var pokemonBaseTexture, pokeballTexture;
+var pokemonsTextures = [];
 var creditsMessage;
 var assigsText = '[{"id": "IC", "credits": 7.5}, {"id": "FM", "credits": 7.5}, {"id": "PRO1", "credits": 7.5}, {"id": "F", "credits": 7.5}, {"id": "PRO2", "credits": 7.5}, {"id": "EC", "credits": 7.5}, {"id": "M1", "credits": 7.5}, {"id": "M2", "credits": 7.5}, {"id": "PE", "credits": 6.0}, {"id": "SO", "credits": 6.0}, {"id": "CI", "credits": 6.0}, {"id": "BD", "credits": 6.0}, {"id": "EDA", "credits": 6.0}, {"id": "PROP", "credits": 6.0}, {"id": "EEE", "credits": 6.0}, {"id": "XC", "credits": 6.0}, {"id": "IES", "credits": 6.0}, {"id": "AC", "credits": 6.0}, {"id": "GPS", "credits": 6.0}, {"id": "LI", "credits": 6.0}, {"id": "SO2", "credits": 6.0}, {"id": "AC2", "credits": 6.0}, {"id": "TC", "credits": 6.0}, {"id": "SIO", "credits": 6.0}, {"id": "DSBM", "credits": 6.0}, {"id": "DSI", "credits": 6.0}, {"id": "CSI", "credits": 6.0}, {"id": "IO", "credits": 6.0}, {"id": "TXC", "credits": 6.0}, {"id": "XC2", "credits": 6.0}, {"id": "CAP", "credits": 6.0}, {"id": "PAR", "credits": 6.0}, {"id": "IA", "credits": 6.0}, {"id": "A", "credits": 6.0}, {"id": "AS", "credits": 6.0}, {"id": "PDS", "credits": 6.0}, {"id": "ER", "credits": 6.0}, {"id": "DBD", "credits": 6.0}, {"id": "IDI", "credits": 6.0}, {"id": "ADEI", "credits": 6.0}, {"id": "ASO", "credits": 6.0}, {"id": "TCI", "credits": 6.0}, {"id": "CAIM", "credits": 6.0}, {"id": "PCA", "credits": 6.0}, {"id": "SOA", "credits": 6.0}, {"id": "PI", "credits": 6.0}, {"id": "AD", "credits": 6.0}, {"id": "ABD", "credits": 6.0}, {"id": "STR", "credits": 6.0}, {"id": "SI", "credits": 6.0}, {"id": "SID", "credits": 6.0}, {"id": "PEC", "credits": 6.0}, {"id": "CPD", "credits": 6.0}, {"id": "PES", "credits": 6.0}, {"id": "MI", "credits": 6.0}, {"id": "SOAD", "credits": 6.0}, {"id": "ECSDI", "credits": 6.0}, {"id": "VLSI", "credits": 6.0}, {"id": "CL", "credits": 6.0}, {"id": "EDO", "credits": 6.0}, {"id": "IM", "credits": 6.0}, {"id": "APA", "credits": 6.0}, {"id": "LP", "credits": 6.0}, {"id": "MP", "credits": 6.0}, {"id": "PTI", "credits": 6.0}, {"id": "SIM", "credits": 6.0}, {"id": "CASO", "credits": 6.0}, {"id": "AA", "credits": 6.0}, {"id": "PAP", "credits": 6.0}, {"id": "SDX", "credits": 6.0}, {"id": "PSI", "credits": 6.0}, {"id": "G", "credits": 6.0}, {"id": "NE", "credits": 6.0}, {"id": "CN", "credits": 6.0}, {"id": "CBDE", "credits": 6.0}, {"id": "ASW", "credits": 6.0}, {"id": "MD", "credits": 6.0}]';
 var state;
@@ -26,8 +29,26 @@ document.body.appendChild(renderer.view);
 
 state = play;
 
-setup();
-requestAnimationFrame(gameLoop);
+PIXI.loader
+    .add('pokemonsBaseTexture', 'pokemons.png')
+    .add('pokeballTexture', 'pokeball.png')
+    .load(function (loader, resources) {
+      pokemonBaseTexture = resources.pokemonsBaseTexture.texture;
+      pokeballTexture = resources.pokeballTexture.texture;
+      var widht = 122;
+      var height = 134;
+      for (var i = 0; i < 8; ++i) {
+        for (var j = 0; j < 3; ++j) {
+          pokemonsTextures.push(new Texture(pokemonBaseTexture, {
+            x: i * widht,
+            y: j * height,
+            width: widht,
+            height: height
+          }));
+        }
+      }
+      setup();
+    });
 
 // TODO: Capture pokemon on collision when y speed is positive (going down)
 // TODO: Print assig name over/under the pokemon
@@ -62,15 +83,17 @@ function setup () {
   assigs = JSON.parse(assigsText);
   stage.addChild(pokemonContainer);
 
-  var pokemonTexture = PIXI.Texture.fromImage('pokemons.png');
-  pokemonTexture.frame = new PIXI.Rectangle(0, 0, 100, 100);
-  pokemons = createPokemon(pokemonTexture);
+  // Set pokemon
+  pokemons = createPokemon(pokemonsTextures);
+  console.log(pokemons);
 
-  var pokeballTexture = PIXI.Texture.fromImage('pokeball.png');
+  // Set pokeball
   pokeball = createPokeball(pokeballTexture);
 
   creditsMessage = createCredits();
   stage.addChild(creditsMessage);
+
+  requestAnimationFrame(gameLoop);
 }
 
 function createCredits () {
@@ -206,9 +229,11 @@ function createPokeball(texture) {
   stage.addChild(pokeball);
   return pokeball;
 }
-function createPokemon (texture) {
-  var pokemon = new PIXI.Sprite(texture);
-  var rand = Math.round(Math.random() * assigs.length);
+function createPokemon (textures) {
+  var pokerand = Math.round(Math.random() * (textures.length - 1));
+  var pokemonText = textures[pokerand];
+  var pokemon = new PIXI.Sprite(pokemonText);
+  var rand = Math.round(Math.random() * (assigs.length - 1));
   var assig = assigs[rand];
   pokemon.assig = assig.id;
   pokemon.credits = assig.credits;
@@ -242,7 +267,7 @@ function createPokemon (texture) {
     
   };
   pokemon.reset = function () {
-    var rand = Math.round(Math.random() * assigs.length);
+    var rand = Math.round(Math.random() * (assigs.length - 1));
     var assig = assigs[rand];
     this.assig = assig.id;
     this.credits = assig.credits;
