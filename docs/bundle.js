@@ -36343,8 +36343,9 @@ var scale = 1;
 
 var maxSpeed = -0.07;
 var myView = document.getElementById('myCanvas');
-myView.width  = window.innerWidth-20;
-myView.height = window.innerHeight-20;
+myView.width  = window.innerWidth;
+myView.height = window.innerHeight;
+
       
 
 maxWidth = myView.width;
@@ -36375,6 +36376,18 @@ PIXI.loader
       }
       setup();
     });
+
+// Setup resizer
+renderer.autoresize = true;
+renderer.resizeCanvas = function() {
+  maxWidth = window.innerWidth-5;
+  maxHeight = window.innerHeight-5;
+  myView.width = maxWidth;
+  myView.height = maxHeight;
+  renderer.resize(maxWidth, maxHeight); 
+}
+window.addEventListener('resize',renderer.resizeCanvas);
+renderer.resizeCanvas();
 
 // TODO: Capture pokemon on collision when y speed is positive (going down)
 // TODO: Print assig name over/under the pokemon
@@ -36411,9 +36424,11 @@ function setup () {
 
   // Set pokemon
   pokemons = createPokemon(pokemonsTextures);
+  renderer.pokemons = pokemons;
 
   // Set pokeball
   pokeball = createPokeball(pokeballTexture);
+  renderer.pokeball = pokeball;
 
   creditsMessage = createCredits();
   stage.addChild(creditsMessage);
@@ -36596,7 +36611,7 @@ function createPokemon (textures) {
   pokemon.reset = function () {
     var assigRand = Math.round(Math.random() * (assigs.length - 1));
     // This is so that the same pokemons appear for the each assig (if repeated)
-    var pokeRand = rand % textures.length;
+    var pokeRand = assigRand % textures.length;
 
     // Save assig object
     var assig = assigs[assigRand];
@@ -36606,7 +36621,7 @@ function createPokemon (textures) {
     this.assigMessage.text = this.assig;
     this.assigMessage.textWidth = textWidth(pokemon.assig, pokemon.fontFamily, pokemon.fontSize);
 
-    this.texture = textures[pokemonRand];
+    this.texture = textures[pokeRand];
     this.angle = 0;
     this.position.set(80, 50);
     this.scale.set(1);
