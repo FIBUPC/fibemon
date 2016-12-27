@@ -36473,7 +36473,7 @@ function setupEnd() {
   var fontSize = '20px';
   endMessage = new Text(
       'HOLA',
-      {fontFamily: fontFamily, fontSize: fontSize, fill: 'black'}
+      {fontFamily: fontFamily, fontSize: fontSize, fill: 'white'}
   );
   endMessage.position.set(0,75)
   endContainer.position.set(maxWidth/2-150,maxHeight/2-50);
@@ -36655,8 +36655,8 @@ function createPokeball(texture) {
     // set the interaction data to null
     this.data = null;
     
-    this.speed.x = (this.position.x - this.prev.x)/3;
-    this.speed.y = (this.position.y - this.prev.y)/3;
+    this.speed.x = (this.position.x - this.prev.x)/4;
+    this.speed.y = (this.position.y - this.prev.y)/4;
   }
   function onDragMove() {
     if (!this.dragging) return;
