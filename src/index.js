@@ -23,7 +23,7 @@ var pokemonBaseTexture, pokeballTexture, lifeTexture;
 var pokemonTextWidth = 64;
 var pokemonTextHeight = 64;
 
-var pokeball, pokemon, lifes;
+var pokeball, pokemon, lifes, credits;
 var endMessage;
 
 var numPokemons = 135;
@@ -361,7 +361,7 @@ function createPokemon (textures) {
   tmpPokemon.fontFamily = 'arial';
   tmpPokemon.assigMessage = new PIXI.Text(
       '',
-      {fontFamily: tmpPokemon.fontFamily, fontSize: tmpPokemon.fontSize, fill: 'black'}
+      {fontFamily: tmpPokemon.fontFamily, fontSize: tmpPokemon.fontSize, fill: 'white'}
   );
   // To get the size on pixels of the text
   tmpPokemon.assigMessage.textWidth = textWidth(tmpPokemon.assig, tmpPokemon.fontFamily, tmpPokemon.fontSize);
