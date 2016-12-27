@@ -367,7 +367,7 @@ function createPokemon (textures) {
   tmpPokemon.assigMessage.textWidth = textWidth(tmpPokemon.assig, tmpPokemon.fontFamily, tmpPokemon.fontSize);
 
   tmpPokemon.update = function (dt) {
-    this.angle += 0.6 * dt;
+    this.angle += 0.6 * dt * this.randomDirection;
     var middle = (maxWidth / 2 - 50);
     var sinInc = Math.sin(this.angle) * middle; 
     this.position.x = middle + sinInc;
@@ -393,6 +393,8 @@ function createPokemon (textures) {
     var assigRand = Math.round(Math.random() * (assigs.length - 1));
     // This is so that the same pokemon appear for the each assig (if repeated)
     var pokeRand = assigRand % textures.length;
+    var possibleDirections = [-1,1]
+    this.randomDirection = possibleDirections[Math.floor(Math.random() * possibleDirections.length)]
 
     // Save assig object
     var assig = assigs[assigRand];
