@@ -36542,7 +36542,7 @@ function createCredits () {
   var fontSize = '24px';
   var tmpCredits = new Text(
       '',
-      {fontFamily: fontFamily, fontSize: fontSize, fill: 'black'}
+      {fontFamily: fontFamily, fontSize: fontSize, fill: 'white'}
   );
   tmpCredits.fontFamily = fontFamily;
   tmpCredits.fontSize = fontSize;
