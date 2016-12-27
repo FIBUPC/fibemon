@@ -19,16 +19,14 @@ var assigsText = '[{"id": "IC", "credits": 7.5}, {"id": "FM", "credits": 7.5}, {
 
 // Texture related vars
 var pokemonsTextures = [];
-var pokemonBaseTexture, pokeballTexture;
+var pokemonBaseTexture, pokeballTexture, lifeTexture;
 var pokemonTextWidth = 64;
 var pokemonTextHeight = 64;
 
-var pokeball, pokemons;
-var startMessage, endMessage;
-var lifeMessage, creditsMessage;
+var pokeball, pokemon, lifes, credits;
+var endMessage;
 
 var numPokemons = 135;
-var life = 3;
 
 var state;
 
@@ -49,9 +47,11 @@ state = start;
 PIXI.loader
     .add('pokemonsBaseTexture', 'pokemons2.png')
     .add('pokeballTexture', 'pokeball.png')
+    .add('lifeTexture', 'life.png')
     .load(function (loader, resources) {
       pokemonBaseTexture = resources.pokemonsBaseTexture.texture;
       pokeballTexture = resources.pokeballTexture.texture;
+      lifeTexture = resources.lifeTexture.texture;
       for (var x = 0; x <= numPokemons; ++x) {
         var i = x % 16;
         var j = Math.round(x / 16);
@@ -98,13 +98,19 @@ function play (ts) {
   this.startTime = ts;
 
   pokeball.update();
-  pokemons.update(dt);
+  pokemon.update(dt);
+  lifes.update();
 
   // Change state
-  if (hitTestRectangle(pokemons,pokeball) && !pokeball.dragging){
+  if (hitTestRectangle(pokemon,pokeball) && !pokeball.dragging){
     state = capture;
   }
-  if (creditsMessage.credits > 12) {
+  if (credits.amount > 12) {
+    endMessage.text = 'Has acabat la carrera, Felicitats!';
+    state = end;
+  }
+  if (lifes.amount === 0) {
+    endMessage.text = 'Has esgotat les pokeballs!';
     state = end;
   }
 }
@@ -113,8 +119,8 @@ function capture (ts) {
   var dt = (ts - this.startTime)/700;
   this.startTime = ts;
 
-  pokemons.angle = 0;
-  pokemons.capture(dt)
+  pokemon.angle = 0;
+  pokemon.capture(dt)
 }
 
 // Game Setup
@@ -133,6 +139,7 @@ function setupStart () {
 }
 function setupPlay () {
   setupAssigs();
+  setupLifes();
   setupPokemons();
   setupPokeball();
   setupCredits();
@@ -140,14 +147,15 @@ function setupPlay () {
 function setupEnd() {
   var fontFamily = 'Arial';
   var fontSize = '24px';
-  var text = new Text(
-      'Has acabat la carrera, Felicitats!',
+  endMessage = new Text(
+      '',
       {fontFamily: fontFamily, fontSize: fontSize, fill: 'black'}
   );
-  endContainer.addChild(text);
+  endContainer.addChild(endMessage);
   var button = createButton(0, 50, 200, 100, 'Torna a començar', function () {
-    creditsMessage.reset();
-    pokemons.reset();
+    credits.reset();
+    pokemon.reset();
+    lifes.reset();
     state = play;
   });
   endContainer.addChild(button);
@@ -159,8 +167,8 @@ function setupAssigs () {
   playContainer.addChild(pokemonContainer);
 }
 function setupPokemons () {
-  pokemons = createPokemon(pokemonsTextures);
-  renderer.pokemons = pokemons;
+  pokemon = createPokemon(pokemonsTextures);
+  renderer.pokemons = pokemon;
 }
 function setupPokeball () {
   // Set pokeball
@@ -168,32 +176,64 @@ function setupPokeball () {
   renderer.pokeball = pokeball;
 }
 function setupCredits () {
-  creditsMessage = createCredits();
-  playContainer.addChild(creditsMessage);
+  credits = createCredits();
+  playContainer.addChild(credits);
+}
+function setupLifes () {
+  lifes = new Container();
+  lifes.position.set(150,0);
+  lifes.sprites = [];
+  lifes.maxLifes = 3;
+  lifes.amount = lifes.maxLifes;
+  // Init sprites
+  for (var i = 0; i < lifes.maxLifes; ++i) {
+    var tmpLife = new PIXI.Sprite(lifeTexture);
+    tmpLife.position.set(i * 35, 0);
+    tmpLife.scale.x = 0.1;
+    tmpLife.scale.y = 0.1;
+    lifes.sprites.push(tmpLife);
+
+    lifes.addChild(tmpLife);
+  }
+
+  lifes.update = function () {
+    for (var i = this.amount; i < this.maxLifes; ++i) {
+      lifes.sprites[i].visible = false;
+    }
+  };
+  lifes.reset = function () {
+    this.amount = this.maxLifes;
+    for (var i = 0; i < this.maxLifes; ++i) {
+      lifes.sprites[i].visible = true;
+    }
+  };
+
+  playContainer.addChild(lifes);
 }
 
 function createCredits () {
   var fontFamily = 'Arial';
   var fontSize = '24px';
-  var text = new Text(
+  var tmpCredits = new Text(
       '',
       {fontFamily: fontFamily, fontSize: fontSize, fill: 'black'}
   );
-  text.fontFamily = fontFamily;
-  text.fontSize = fontSize;
-  text.base = 'Credits: ';
+  tmpCredits.fontFamily = fontFamily;
+  tmpCredits.fontSize = fontSize;
+  tmpCredits.base = 'Credits: ';
+  tmpCredits.amount = 0;
 
-  text.increaseCredits = function increaseCredits (inc) {
-    this.credits += inc;
-    this.text = this.base + this.credits;
+  tmpCredits.increaseCredits = function increaseCredits (inc) {
+    this.amount += inc;
+    this.text = this.base + this.amount;
   };
-  text.reset = function () {
-    this.credits = 0;
-    this.text = this.base + this.credits;
+  tmpCredits.reset = function () {
+    this.amount = 0;
+    this.text = this.base + this.amount;
   };
 
-  text.reset();
-  return text;
+  tmpCredits.reset();
+  return tmpCredits;
 }
 function createPokeball(texture) {
   pokeball = new PIXI.Sprite(texture);
@@ -236,7 +276,7 @@ function createPokeball(texture) {
       this.inertia = true;
     }
     if (this.inertia) {
-      if (this.speed.y===0) return this.reset();
+      if (this.speed.y === 0) return this.reset();
 
       this.position.x += this.speed.x;
       this.position.y += this.speed.y;
@@ -246,10 +286,13 @@ function createPokeball(texture) {
     }
 
     // Look if pokeball is out of bounds
-    if (pokeball.position.y > maxHeight) pokeball.reset();
-    if (pokeball.position.y < maxHeight/4+20 && pokeball.dragging) pokeball.reset();
-    if (pokeball.position.y < -100) pokeball.reset();
-    if (pokeball.position.x > maxWidth || pokeball.position.x < 0) pokeball.reset();
+    if ((pokeball.position.y > maxHeight) ||
+        (pokeball.position.y < maxHeight / 4 + 20 && pokeball.dragging) ||
+        (pokeball.position.y < -100) ||
+        (pokeball.position.x > maxWidth || pokeball.position.x < 0)) {
+            pokeball.reset();
+            --lifes.amount;
+    }
   };
   pokeball.reset = function () {
     this.thrown = false;
@@ -265,7 +308,7 @@ function createPokeball(texture) {
     this.speed = {
       x : 0,
       y : 0
-    }
+    };
   };
 
   // Callback Functions
@@ -310,32 +353,32 @@ function createPokeball(texture) {
   return pokeball;
 }
 function createPokemon (textures) {
-  var pokemon = new PIXI.Sprite(textures[0]);
-  pokemon.fontSize = '24px';
-  pokemon.fontFamily = 'Arial';
-  pokemon.assigMessage = new PIXI.Text(
+  var tmpPokemon = new PIXI.Sprite(textures[0]);
+  tmpPokemon.fontSize = '24px';
+  tmpPokemon.fontFamily = 'Arial';
+  tmpPokemon.assigMessage = new PIXI.Text(
       '',
-      {fontFamily: pokemon.fontFamily, fontSize: pokemon.fontSize, fill: 'black'}
+      {fontFamily: tmpPokemon.fontFamily, fontSize: tmpPokemon.fontSize, fill: 'black'}
   );
   // To get the size on pixels of the text
-  pokemon.assigMessage.textWidth = textWidth(pokemon.assig, pokemon.fontFamily, pokemon.fontSize);
+  tmpPokemon.assigMessage.textWidth = textWidth(tmpPokemon.assig, tmpPokemon.fontFamily, tmpPokemon.fontSize);
 
-  pokemon.update = function (dt) {
+  tmpPokemon.update = function (dt) {
     this.angle += 0.6 * dt;
     var middle = (maxWidth / 2 - 50);
     var sinInc = Math.sin(this.angle) * middle; 
     this.position.x = middle + sinInc;
-    var offsetX = (pokemonTextWidth - pokemon.assigMessage.textWidth) / 2;
-    this.assigMessage.position.set(pokemon.position.x + offsetX,
-                                   pokemon.position.y - 30);
+    var offsetX = (pokemonTextWidth - tmpPokemon.assigMessage.textWidth) / 2;
+    this.assigMessage.position.set(tmpPokemon.position.x + offsetX,
+                                   tmpPokemon.position.y - 30);
   };
-  pokemon.capture = function(dt) {
+  tmpPokemon.capture = function(dt) {
     this.angle += 0.6*dt;
     var sinInc = Math.sin(this.angle) ; 
     var newScale = this.scale.x - sinInc;
     if (newScale <= 0) {
-      creditsMessage.increaseCredits(this.credits);
-      pokemon.reset();
+      credits.increaseCredits(this.credits);
+      tmpPokemon.reset();
       pokeball.reset();
       state = play;
     } else {
@@ -343,9 +386,9 @@ function createPokemon (textures) {
     }
     
   };
-  pokemon.reset = function () {
+  tmpPokemon.reset = function () {
     var assigRand = Math.round(Math.random() * (assigs.length - 1));
-    // This is so that the same pokemons appear for the each assig (if repeated)
+    // This is so that the same pokemon appear for the each assig (if repeated)
     var pokeRand = assigRand % textures.length;
 
     // Save assig object
@@ -354,7 +397,7 @@ function createPokemon (textures) {
     this.assig = assig.id;
     this.credits = assig.credits;
     this.assigMessage.text = this.assig;
-    this.assigMessage.textWidth = textWidth(pokemon.assig, pokemon.fontFamily, pokemon.fontSize);
+    this.assigMessage.textWidth = textWidth(tmpPokemon.assig, tmpPokemon.fontFamily, tmpPokemon.fontSize);
 
     this.texture = textures[pokeRand];
     this.angle = 0;
@@ -362,10 +405,10 @@ function createPokemon (textures) {
     this.scale.set(1);
   };
 
-  pokemon.reset();
-  pokemonContainer.addChild(pokemon);
-  pokemonContainer.addChild(pokemon.assigMessage);
-  return pokemon;
+  tmpPokemon.reset();
+  pokemonContainer.addChild(tmpPokemon);
+  pokemonContainer.addChild(tmpPokemon.assigMessage);
+  return tmpPokemon;
 }
 
 // Game Loop
