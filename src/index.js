@@ -23,7 +23,7 @@ var pokemonBaseTexture, pokeballTexture, lifeTexture;
 var pokemonTextWidth = 64;
 var pokemonTextHeight = 64;
 
-var pokeball, pokemon, lifes, credits;
+var pokeball, pokemon, lifes;
 var endMessage;
 
 var numPokemons = 135;
@@ -44,6 +44,17 @@ var scale = 1;
 
 state = start;
 
+// Setup resizer
+renderer.autoresize = true;
+renderer.resizeCanvas = function() {
+  maxWidth = window.innerWidth - 5;
+  maxHeight = window.innerHeight - 5;
+  myView.width = maxWidth;
+  myView.height = maxHeight;
+  renderer.resize(maxWidth, maxHeight); 
+};
+window.addEventListener('resize',renderer.resizeCanvas);
+
 PIXI.loader
     .add('pokemonsBaseTexture', 'pokemons2.png')
     .add('pokeballTexture', 'pokeball.png')
@@ -62,20 +73,10 @@ PIXI.loader
           height: pokemonTextHeight
         }));
       }
+      renderer.resizeCanvas();
       setup();
     });
 
-// Setup resizer
-renderer.autoresize = true;
-renderer.resizeCanvas = function() {
-  maxWidth = window.innerWidth - 5;
-  maxHeight = window.innerHeight - 5;
-  myView.width = maxWidth;
-  myView.height = maxHeight;
-  renderer.resize(maxWidth, maxHeight); 
-};
-window.addEventListener('resize',renderer.resizeCanvas);
-renderer.resizeCanvas();
 
 // Game States
 function start () {
@@ -106,11 +107,11 @@ function play (ts) {
     state = capture;
   }
   if (credits.amount > 240) {
-    endMessage.text = 'Has acabat la carrera, Felicitats!';
+    endMessage.text = 'Felicitats! Has acabat la carrera! \nLlastima que només sigui una innocentada';
     state = end;
   }
   if (lifes.amount === 0) {
-    endMessage.text = 'Has esgotat les pokeballs!';
+    endMessage.text = 'Credits aconseguits: '+ credits.amount;
     state = end;
   }
 }
@@ -132,7 +133,7 @@ function setup () {
 }
 
 function setupStart () {
-  var button = createButton(0, 0, 200, 100, 'Start', function () {
+  var button = createButton(maxWidth/2-50,maxHeight/2-25, 100, 50, 'Start', function () {
     state = play;
   });
   startContainer.addChild(button);
@@ -145,14 +146,17 @@ function setupPlay () {
   setupCredits();
 }
 function setupEnd() {
-  var fontFamily = 'Arial';
-  var fontSize = '24px';
+  var fontFamily = 'arial';
+  var fontSize = '20px';
   endMessage = new Text(
-      '',
+      'HOLA',
       {fontFamily: fontFamily, fontSize: fontSize, fill: 'black'}
   );
+  endMessage.position.set(0,75)
+  endContainer.position.set(maxWidth/2-150,maxHeight/2-50);
   endContainer.addChild(endMessage);
-  var button = createButton(0, 50, 200, 100, 'Torna a començar', function () {
+
+  var button = createButton(0,0, 300, 50, 'Tornar a començar', function () {
     credits.reset();
     pokemon.reset();
     lifes.reset();
@@ -180,9 +184,9 @@ function setupCredits () {
 }
 function setupLifes () {
   lifes = new Container();
-  lifes.position.set(150,0);
+  lifes.position.set(0,30);
   lifes.sprites = [];
-  lifes.maxLifes = 3;
+  lifes.maxLifes = 7;
   lifes.amount = lifes.maxLifes;
   // Init sprites
   for (var i = 0; i < lifes.maxLifes; ++i) {
@@ -211,7 +215,7 @@ function setupLifes () {
 }
 
 function createCredits () {
-  var fontFamily = 'Arial';
+  var fontFamily = 'arial';
   var fontSize = '24px';
   var tmpCredits = new Text(
       '',
@@ -328,8 +332,8 @@ function createPokeball(texture) {
     // set the interaction data to null
     this.data = null;
     
-    this.speed.x = (this.position.x - this.prev.x)/5;
-    this.speed.y = (this.position.y - this.prev.y)/5;
+    this.speed.x = (this.position.x - this.prev.x)/3;
+    this.speed.y = (this.position.y - this.prev.y)/3;
   }
   function onDragMove() {
     if (!this.dragging) return;
@@ -354,7 +358,7 @@ function createPokeball(texture) {
 function createPokemon (textures) {
   var tmpPokemon = new PIXI.Sprite(textures[0]);
   tmpPokemon.fontSize = '24px';
-  tmpPokemon.fontFamily = 'Arial';
+  tmpPokemon.fontFamily = 'arial';
   tmpPokemon.assigMessage = new PIXI.Text(
       '',
       {fontFamily: tmpPokemon.fontFamily, fontSize: tmpPokemon.fontSize, fill: 'black'}
@@ -400,7 +404,7 @@ function createPokemon (textures) {
 
     this.texture = textures[pokeRand];
     this.angle = 0;
-    this.position.set(80, 50);
+    this.position.set(50, 100);
     this.scale.set(1);
   };
 
@@ -461,11 +465,10 @@ function createButton (x, y, w, h, t, f) {
   button.touchstart = f;
   button.mouseover = function () {
     button.box.tint = 0xffffff; // Clean tint
-    button.box.tint = 0x44aa33;
+    button.box.tint = 0xdddddd;
   };
   button.mouseout = function () {
     button.box.tint = 0xffffff; // Clean tint
-    button.box.tint = 0x66ff33;
   };
 
   // Box
@@ -475,14 +478,14 @@ function createButton (x, y, w, h, t, f) {
   box.endFill();
   button.addChild(box);
   button.box = box;
-  button.box.tint = 0x66ff33;
+  button.box.tint = 0xffffff;
 
   // Text
-  button.fontFamily = 'Arial';
+  button.fontFamily = 'arial';
   button.fontSize = '32px';
   button.text = new Text(
       t,
-      {fontFamily: button.fontFamily, fontSize: button.fontSize, fill: 'white'}
+      {fontFamily: button.fontFamily, fontSize: button.fontSize, fill: 'black'}
   );
   button.text.textSize = textWidth(t, button.fontFamily, button.fontSize);
   button.text.position.set((w - button.text.textSize) / 2, (h - 32) / 2);
