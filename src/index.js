@@ -105,7 +105,7 @@ function play (ts) {
   if (hitTestRectangle(pokemon,pokeball) && !pokeball.dragging){
     state = capture;
   }
-  if (credits.amount > 12) {
+  if (credits.amount > 240) {
     endMessage.text = 'Has acabat la carrera, Felicitats!';
     state = end;
   }
@@ -164,11 +164,10 @@ function setupEnd() {
 function setupAssigs () {
   // Loading assigs from json file
   assigs = JSON.parse(assigsText);
-  playContainer.addChild(pokemonContainer);
 }
 function setupPokemons () {
   pokemon = createPokemon(pokemonsTextures);
-  renderer.pokemons = pokemon;
+  playContainer.addChild(pokemonContainer);
 }
 function setupPokeball () {
   // Set pokeball
