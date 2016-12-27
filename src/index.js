@@ -117,7 +117,7 @@ function createCredits () {
   var base = 'Credits: ';
   var text =  new PIXI.Text(
       '',
-      {fontFamily: 'Arial ', fontSize: '24px', fill: 'white'}
+      {fontFamily: 'Arial ', fontSize: '24px', fill: 'black'}
   );
 
   text.increaseCredits = function increaseCredits (inc) {
@@ -257,7 +257,7 @@ function createPokemon (textures) {
   pokemon.fontFamily = 'Arial';
   pokemon.assigMessage = new PIXI.Text(
       '',
-      {fontFamily: pokemon.fontFamily, fontSize: pokemon.fontSize, fill: 'white'}
+      {fontFamily: pokemon.fontFamily, fontSize: pokemon.fontSize, fill: 'black'}
   );
   // To get the size on pixels of the text
   pokemon.assigMessage.textWidth = textWidth(pokemon.assig, pokemon.fontFamily, pokemon.fontSize);
